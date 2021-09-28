@@ -18,7 +18,7 @@ def index(request):
             'logged_in_employee': logged_in_employee
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
-        Cusomer = apps.get_model('customers.Customer')
+        Customer = apps.get_model('customers.Customer')
         return render(request, 'employees/index.html', context)
     except ObjectDoesNotExist:
         return HttpResponseRedirect(reverse('employees:create_employee'))
