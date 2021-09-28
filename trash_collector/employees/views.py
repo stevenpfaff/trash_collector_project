@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .models import Employee
 from django.core.exceptions import ObjectDoesNotExist
+from datetime import date
 # Create your views here.
 # TODO: Create a function for each path created in employees/urls.py. Each will need a template as well.
 
@@ -14,8 +15,10 @@ def index(request):
     logged_in_user = request.user
     try: 
         logged_in_employee = Employee.objects.get(user=logged_in_user)
+        today = date.today()
         context = {
-            'logged_in_employee': logged_in_employee
+            'logged_in_employee': logged_in_employee,
+            'today' : today
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
         Customer = apps.get_model('customers.Customer')
@@ -54,3 +57,18 @@ def edit_employee_profile(request):
             'logged_in_employee': logged_in_employee
         }
         return render(request, 'employees/edit_employee_profile.html', context)
+
+@login_required
+def todays_customers(request):
+    logged_in_user = request.user
+    logged_in_employee = Employee.objects.get(user=logged_in_user)
+    if request.method == "POST":
+        zip_from_form = request.POST.get('zip_code')
+        date_from_form = request.POST.get('date')
+        logged_in_employee.one_time_pickup = date_from_form
+        logged_in_employee.zip_code = zip_from_form
+    else:
+        context = {
+            'logged_in_employee': logged_in_employee
+        }
+        return render(request, 'employees/todays_customers.html', context)
