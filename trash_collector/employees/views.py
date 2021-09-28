@@ -18,10 +18,10 @@ def index(request):
             'logged_in_employee': logged_in_employee
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
-        Customer = apps.get_model('customers.Customer')
+        Cusomer = apps.get_model('customers.Customer')
         return render(request, 'employees/index.html', context)
     except ObjectDoesNotExist:
-        return HttpResponseRedirect(reverse('employees:create'))
+        return HttpResponseRedirect(reverse('employees:create_employee'))
     
     
 @login_required
@@ -35,3 +35,22 @@ def create_employee(request):
         return HttpResponseRedirect(reverse('employees:index'))
     else:
         return render(request, 'employees/create_employee.html')
+
+@login_required
+def edit_employee_profile(request):
+    logged_in_user = request.user
+    logged_in_employee = Employee.objects.get(user=logged_in_user)
+    if request.method == "POST":
+        name_from_form = request.POST.get('name')
+        address_from_form = request.POST.get('address')
+        zip_from_form = request.POST.get('zip_code')
+        logged_in_employee.name = name_from_form
+        logged_in_employee.address = address_from_form
+        logged_in_employee.zip_code = zip_from_form
+        logged_in_employee.save()
+        return HttpResponseRedirect(reverse('employee:index'))
+    else:
+        context = {
+            'logged_in_employee': logged_in_employee
+        }
+        return render(request, 'employees/edit_employee_profile.html', context)
