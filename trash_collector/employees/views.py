@@ -7,22 +7,32 @@ from django.contrib.auth.decorators import login_required
 from .models import Employee
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
-from django.views import generic
+import calendar
 # Create your views here.
 # TODO: Create a function for each path created in employees/urls.py. Each will need a template as well.
 
 @login_required
 def index(request):
     logged_in_user = request.user
+    # This line will get the Customer model from the other app, it can now be used to query the db for Customers
+    Customer = apps.get_model('customers.Customer')
     try: 
         logged_in_employee = Employee.objects.get(user=logged_in_user)
         today = date.today()
+        print(calendar.day_name[today.weekday()])
+    
+
+        customers_in_zipcodes = Customer.objects.filter(zip_code=logged_in_employee.zip_code)
+        todays_customer_pickups = customers_in_zipcodes.filter(one_time_pickup=today) | customers_in_zipcodes.filter(weekly_pickup=today)
+        non_suspended_accounts = todays_customer_pickups.filter(suspend_start=today) | todays_customer_pickups.filter(suspend_end=today)
+        picked_up_trash = non_suspended_accounts.filter(date_of_last_pickup = today)
+        if picked_up_trash == False:
+            return 
+
         context = {
             'logged_in_employee': logged_in_employee,
             'today' : today
     }
-    # This line will get the Customer model from the other app, it can now be used to query the db for Customers
-        Customer = apps.get_model('customers.Customer')
         return render(request, 'employees/index.html', context)
     except ObjectDoesNotExist:
         return HttpResponseRedirect(reverse('employees:create_employee'))
@@ -41,16 +51,11 @@ def create_employee(request):
         return render(request, 'employees/create_employee.html')
 
 @login_required
-def edit_employee_profile(request):
-    logged_in_user = request.user
-    logged_in_employee = Employee.objects.get(user=logged_in_user)
+def edit_employee_profile(request, employee_id):
+    logged_in_employee = Employee.objects.get(pk=employee_id)
     if request.method == "POST":
-        name_from_form = request.POST.get('name')
-        address_from_form = request.POST.get('address')
-        zip_from_form = request.POST.get('zip_code')
-        logged_in_employee.name = name_from_form
-        logged_in_employee.address = address_from_form
-        logged_in_employee.zip_code = zip_from_form
+        logged_in_employee.name = request.POST.get('name')
+        logged_in_employee.zip_code = request.POST.get('zip_code')
         logged_in_employee.save()
         return HttpResponseRedirect(reverse('employee:index'))
     else:
@@ -58,17 +63,3 @@ def edit_employee_profile(request):
             'logged_in_employee': logged_in_employee
         }
         return render(request, 'employees/edit_employee_profile.html', context)
-
-
-class MatchingZipView(generic.ListView):
-    model = Employee
-    template_name = 'employees/matching_zip.html'
-    context_object_name = 'matching_zip'
-    def get_queryset(self):
-        Customer = apps.get_model('customers.Customer')
-        self.employee_zip = get_object_or_404(Customer, name=self.kwargs['customers'])
-        return Employee.objects.filter(customer=self.employee_zip)
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['customer_zip_code'] = self.employee_zip.zip_code
-        return context

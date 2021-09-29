@@ -6,6 +6,11 @@
   {% if user.is_authenticated %}
         Hello Employee {{ user.username }}!
         Zip Code: {{logged_in_employee.zip_code }}<br />
+        <div>Customers in Zip Code {{logged_in_employee.zip_code }} :</div>
+        <div> Pick Up Day : {{today.weekday}} </div>
+        <div> Non Supsended Accounts :</div>
+        <div> Trash Picked up today? :</div>
+        
 
     
   {% else %}
