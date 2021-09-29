@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Employee
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
+from django.views import generic
 # Create your views here.
 # TODO: Create a function for each path created in employees/urls.py. Each will need a template as well.
 
@@ -58,17 +59,16 @@ def edit_employee_profile(request):
         }
         return render(request, 'employees/edit_employee_profile.html', context)
 
-@login_required
-def todays_customers(request):
-    logged_in_user = request.user
-    logged_in_employee = Employee.objects.get(user=logged_in_user)
-    if request.method == "POST":
-        zip_from_form = request.POST.get('zip_code')
-        date_from_form = request.POST.get('date')
-        logged_in_employee.one_time_pickup = date_from_form
-        logged_in_employee.zip_code = zip_from_form
-    else:
-        context = {
-            'logged_in_employee': logged_in_employee
-        }
-        return render(request, 'employees/todays_customers.html', context)
+
+class MatchingZipView(generic.ListView):
+    model = Employee
+    template_name = 'employees/matching_zip.html'
+    context_object_name = 'matching_zip'
+    def get_queryset(self):
+        Customer = apps.get_model('customers.Customer')
+        self.employee_zip = get_object_or_404(Customer, name=self.kwargs['customers'])
+        return Employee.objects.filter(customer=self.employee_zip)
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['customer_zip_code'] = self.employee_zip.zip_code
+        return context
