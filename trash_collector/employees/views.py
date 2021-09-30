@@ -8,21 +8,40 @@ from .models import Employee
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
 from django.views import generic
+from django.shortcuts import get_object_or_404
 # Create your views here.
 # TODO: Create a function for each path created in employees/urls.py. Each will need a template as well.
 
 @login_required
 def index(request):
     logged_in_user = request.user
+    Customer = apps.get_model('customers.Customer')
     try: 
         logged_in_employee = Employee.objects.get(user=logged_in_user)
         today = date.today()
+        weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        weekday_num = today.weekday()
+        specific_day = weekdays[weekday_num]
+        
+        
+        # find out how to get day of week in python (will be an integer)
+        # create a list of the days that match up to the integers
+        # use the interger as the index to the the string of the current day!
+        # 0 = 'Monday'
+        # 1 = 'Tuesday'
+        customers_in_zipcode = Customer.objects.filter(zip_code=logged_in_employee.zip_code)
+        todays_customer_pickup = customers_in_zipcode.filter(one_time_pickup=today) | customers_in_zipcode.filter(weekly_pickup=specific_day)
+        non_suspended_accounts = todays_customer_pickup.filter(suspend_starttoday) | todays_customer_pickup.filter(suspend_end=today)
+        picked_up_trash = todays_customer_pickup.filter(date_of_last_pickup=today)
+        if non_suspended_accounts == False & picked_up_trash == False:
+            return 
+        
+
         context = {
             'logged_in_employee': logged_in_employee,
             'today' : today
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
-        Customer = apps.get_model('customers.Customer')
         return render(request, 'employees/index.html', context)
     except ObjectDoesNotExist:
         return HttpResponseRedirect(reverse('employees:create_employee'))
@@ -60,15 +79,6 @@ def edit_employee_profile(request):
         return render(request, 'employees/edit_employee_profile.html', context)
 
 
-class MatchingZipView(generic.ListView):
-    model = Employee
-    template_name = 'employees/matching_zip.html'
-    context_object_name = 'matching_zip'
-    def get_queryset(self):
-        Customer = apps.get_model('customers.Customer')
-        self.employee_zip = get_object_or_404(Customer, name=self.kwargs['customers'])
-        return Employee.objects.filter(customer=self.employee_zip)
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['customer_zip_code'] = self.employee_zip.zip_code
-        return context
+
+
+
