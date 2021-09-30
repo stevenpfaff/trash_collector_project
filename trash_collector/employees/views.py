@@ -19,7 +19,6 @@ def index(request):
     try: 
         logged_in_employee = Employee.objects.get(user=logged_in_user)
         today = date.today()
-        all_customers = Customer.objects.all()
         weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         weekday_num = today.weekday()
         specific_day = weekdays[weekday_num]
@@ -38,7 +37,7 @@ def index(request):
             'today' : today,
             'non_picked_up_trash' : non_picked_up_trash,
             'specific_day' : specific_day,
-            'all_customers' : all_customers
+            
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
         return render(request, 'employees/index.html', context)
