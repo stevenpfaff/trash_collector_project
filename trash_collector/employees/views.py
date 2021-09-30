@@ -19,6 +19,7 @@ def index(request):
     try: 
         logged_in_employee = Employee.objects.get(user=logged_in_user)
         today = date.today()
+        all_customers = Customer.objects.all()
         weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         weekday_num = today.weekday()
         specific_day = weekdays[weekday_num]
@@ -36,7 +37,8 @@ def index(request):
             'logged_in_employee': logged_in_employee,
             'today' : today,
             'non_picked_up_trash' : non_picked_up_trash,
-            'specific_day' : specific_day
+            'specific_day' : specific_day,
+            'all_customers' : all_customers
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
         return render(request, 'employees/index.html', context)
@@ -73,3 +75,9 @@ def edit_employee_profile(request):
         }
         return render(request, 'employees/edit_employee.html', context)
 
+@login_required
+def confirm_pickup(request):
+    logged_in_user = request.user
+    logged_in_employee = Employee.objects.filter(user=logged_in_user)
+    logged_in_employee.save()
+    return render(request, 'employees/confirm.html')

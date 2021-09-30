@@ -6,10 +6,16 @@
   {% if user.is_authenticated %}
         Hello Employee {{ logged_in_employee.name }}!
         Zip Code: {{logged_in_employee.zip_code }}<br />
-        <div> Customers in Zip Code Who Need Service Today {{non_picked_up_trash}} :
+        </ul>
+        <div><h1>Customers in Zip Code Who Need Service Today : </h1>  <ul>
+          {% for customer in all_customers %}
+          <li><h2>{{customer.name}}
+          <a href="{% url 'employees:confirm_pickup' %}"> Confirm Pickup</a> 
         </div>
+        
         <div> Pick Up Day : {{specific_day}}
-
+          {% endfor %}
+        </h2></li>
         
 
     
