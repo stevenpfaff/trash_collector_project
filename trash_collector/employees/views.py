@@ -31,15 +31,18 @@ def index(request):
         # 1 = 'Tuesday'
         customers_in_zipcode = Customer.objects.filter(zip_code=logged_in_employee.zip_code)
         todays_customer_pickup = customers_in_zipcode.filter(one_time_pickup=today) | customers_in_zipcode.filter(weekly_pickup=specific_day)
-        non_suspended_accounts = todays_customer_pickup.filter(suspend_starttoday) | todays_customer_pickup.filter(suspend_end=today)
-        picked_up_trash = todays_customer_pickup.filter(date_of_last_pickup=today)
-        if non_suspended_accounts == False & picked_up_trash == False:
-            return 
+        non_suspended_accounts = todays_customer_pickup.exclude(suspend_start__lte=today, suspend_end__gte=today)
+        non_picked_up_trash = non_suspended_accounts.exclude(date_of_last_pickup=today)
+        
         
 
         context = {
             'logged_in_employee': logged_in_employee,
-            'today' : today
+            'today' : today,
+            'customers_in_zipcode' : customers_in_zipcode,
+            'non_suspended_accounts' : non_suspended_accounts,
+            'non_picked_up_trash' : non_picked_up_trash,
+            'specific_day' : specific_day
     }
     # This line will get the Customer model from the other app, it can now be used to query the db for Customers
         return render(request, 'employees/index.html', context)
@@ -64,19 +67,15 @@ def edit_employee_profile(request):
     logged_in_user = request.user
     logged_in_employee = Employee.objects.get(user=logged_in_user)
     if request.method == "POST":
-        name_from_form = request.POST.get('name')
-        address_from_form = request.POST.get('address')
-        zip_from_form = request.POST.get('zip_code')
-        logged_in_employee.name = name_from_form
-        logged_in_employee.address = address_from_form
-        logged_in_employee.zip_code = zip_from_form
+        logged_in_employee.name = request.POST.get('name')
+        logged_in_employee.zip_code = request.POST.get('zip_code')
         logged_in_employee.save()
-        return HttpResponseRedirect(reverse('employee:index'))
+        return HttpResponseRedirect(reverse('employees:index'))
     else:
         context = {
             'logged_in_employee': logged_in_employee
         }
-        return render(request, 'employees/edit_employee_profile.html', context)
+        return render(request, 'employees/edit_employee.html', context)
 
 
 

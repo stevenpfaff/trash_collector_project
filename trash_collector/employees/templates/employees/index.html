@@ -2,12 +2,10 @@
 {% block title %}{% block header %} Employee Home {% endblock %}{% endblock %}
 {% block content %}
   {% if user.is_authenticated %}
-        Hello Employee {{ user.username }}!
+        Hello Employee {{ logged_in_employee.name }}!
         Zip Code: {{logged_in_employee.zip_code }}<br />
-        <div>Customers in Zip Code {{logged_in_employee.zip_code }} :</div>
-        <div> Pick Up Day : {{today.weekday}} </div>
-        <div> Non Supsended Accounts :</div>
-        <div> Trash Picked up today? :</div>
+        <div> Trash Not Picked up today? : {{non_picked_up_trash }} {{specific_day }}</div>
+        <input type="submit" value="Confirm">
   {% else %}
     <p>You are at the employee index, but you are not logged in.</p>
     <a href="{% url 'login' %}">Log In</a>
