@@ -67,8 +67,10 @@ def edit_employee_profile(request):
     logged_in_user = request.user
     logged_in_employee = Employee.objects.get(user=logged_in_user)
     if request.method == "POST":
-        logged_in_employee.name = request.POST.get('name')
-        logged_in_employee.zip_code = request.POST.get('zip_code')
+        name_from_form = request.POST.get('name')
+        zip_from_form = request.POST.get('zip_code')
+        logged_in_employee.name = name_from_form
+        logged_in_employee.zip_code = zip_from_form
         logged_in_employee.save()
         return HttpResponseRedirect(reverse('employees:index'))
     else:
@@ -76,8 +78,5 @@ def edit_employee_profile(request):
             'logged_in_employee': logged_in_employee
         }
         return render(request, 'employees/edit_employee.html', context)
-
-
-
 
 
