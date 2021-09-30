@@ -24,11 +24,7 @@ def index(request):
         specific_day = weekdays[weekday_num]
         
         
-        # find out how to get day of week in python (will be an integer)
-        # create a list of the days that match up to the integers
-        # use the interger as the index to the the string of the current day!
-        # 0 = 'Monday'
-        # 1 = 'Tuesday'
+      
         customers_in_zipcode = Customer.objects.filter(zip_code=logged_in_employee.zip_code)
         todays_customer_pickup = customers_in_zipcode.filter(one_time_pickup=today) | customers_in_zipcode.filter(weekly_pickup=specific_day)
         non_suspended_accounts = todays_customer_pickup.exclude(suspend_start__lte=today, suspend_end__gte=today)
@@ -39,8 +35,6 @@ def index(request):
         context = {
             'logged_in_employee': logged_in_employee,
             'today' : today,
-            'customers_in_zipcode' : customers_in_zipcode,
-            'non_suspended_accounts' : non_suspended_accounts,
             'non_picked_up_trash' : non_picked_up_trash,
             'specific_day' : specific_day
     }
@@ -78,5 +72,4 @@ def edit_employee_profile(request):
             'logged_in_employee': logged_in_employee
         }
         return render(request, 'employees/edit_employee.html', context)
-
 
